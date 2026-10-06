@@ -1,0 +1,224 @@
+---
+title: "hw1"
+author: "Rao Yuner"
+format:
+  html:
+    self-contained: true
+    code-fold: true
+engine: knitr
+---
+
+```{r}
+#problem 1(a) momentum_walk(n,p)
+momentum_walk <- function(n, p) {
+  if (length(n) != 1 || !is.numeric(n) || n < 0 || n != floor(n)) {
+    stop("n must be a non-negative integer")
+  }
+  if (length(p) != 1 || !is.numeric(p) || p < 0 || p > 1) {
+    stop("p must be between 0 and 1")
+  }
+  directions <- matrix(
+    c(1, 0,
+      -1, 0,
+      0, 1,
+      0, -1),
+    ncol = 2,
+    byrow = TRUE
+  )
+  position <- c(0, 0)
+  current_direction <- sample(1:4, 1)
+  position <- position + directions[current_direction, ]
+  if (n >= 2) {
+    for (i in 2:n) {
+      if (runif(1) < p) {
+      } else {
+        current_direction <- sample(1:4, 1)
+      }
+      position <- position + directions[current_direction, ]
+    }
+  }
+  return(position)
+}
+
+
+#set example
+momentum_walk(10, 0.6)
+```
+
+### Explanation problem1(a)
+
+if we run the same parameters for several times, the outputs are different.
+
+```{r}
+#problem1 partb
+#version1
+momentum_walk1 <- function(n, p) {
+  
+  if (length(n) != 1 || !is.numeric(n) || n < 0 || n != floor(n)) {
+    stop("n must be a non-negative integer")
+  }
+  
+  if (length(p) != 1 || !is.numeric(p) || p < 0 || p > 1) {
+    stop("p must be between 0 and 1")
+  }
+  
+  directions <- matrix(
+    c(1, 0,
+      -1, 0,
+      0, 1,
+      0, -1),
+    ncol = 2,
+    byrow = TRUE
+  )
+  
+  position <- c(0, 0)
+  current_direction <- sample(1:4, 1)
+  position <- position + directions[current_direction, ]
+  if (n >= 2) {
+    for (i in 2:n) {
+      if (runif(1) < p) {
+      } else {
+        current_direction <- sample(1:4, 1)
+      }
+      position <- position + directions[current_direction, ]
+    }
+  }
+  return(position)
+}
+#version 1 test
+momentum_walk1(10, 0.6)
+momentum_walk1(1000, 0.6)
+
+#version2
+momentum_walk2 <- function(n, p) {
+  
+  if (length(n) != 1 || !is.numeric(n) || n < 0 || n != floor(n)) {
+    stop("n must be a non-negative integer")
+  }
+  if (length(p) != 1 || !is.numeric(p) || p < 0 || p > 1) {
+    stop("p must be between 0 and 1")
+  }
+  directions <- matrix(
+    c(1, 0,
+      -1, 0,
+      0, 1,
+      0, -1),
+    ncol = 2,
+    byrow = TRUE
+  )
+  current_direction <- sample(1:4, 1)
+  one_step <- function() {
+    if (runif(1) >= p) {
+      current_direction <<- sample(1:4, 1)
+    }
+    directions[current_direction, ]
+  }
+  position <- directions[current_direction, ]
+  if (n >= 2) {
+    steps <- replicate(n - 1, one_step())
+    position <- position + rowSums(steps)
+  }
+  
+  return(position)
+}
+#version2 test
+momentum_walk2(10, 0.6)
+
+momentum_walk2(1000, 0.6)
+```
+
+### Explanation problem1(b)
+
+### Version 1
+
+Version 1 uses a for loop. At each step, the function either keeps the previous direction with probability p or randomly selects a new direction with probability 1-p. The position is then updated by adding the corresponding direction vector.
+
+### Version 2
+
+Version 2 uses `replicate()` to repeat the step simulation. The previous direction is stored and updated after each simulated step, so the momentum dependence is preserved.
+
+```{r}
+#part c 
+#set example
+set.seed(123)
+momentum_walk1(10, 0.6)
+set.seed(123)
+momentum_walk1(10, 0.6)
+set.seed(123)
+momentum_walk1(1000, 0.6)
+set.seed(123)
+momentum_walk1(1000, 0.6)
+```
+
+### Explanation problem1(c)
+
+I used `set.seed(123)` before each simulation. This fixes the starting point of R's pseudorandom number generator, so the same sequence of random numbers is generated each time.
+
+```{r}
+#problem1 d
+set.seed(123)
+p_values <- c(0, 0.5, 0.9)
+for (p in p_values) {
+  position <- momentum_walk1(1000, p)
+  distance <- sqrt(sum(position^2))
+  cat("p =", p, 
+      "position =", position,
+      "distance =", distance, "\n")
+}
+
+```
+
+### Explanation problem1(d)
+
+Increasing momentum tends to increase the final distance from the origin.The larger momentum, the stronger movement persistence, the fewer cancellations, and bigger distance.
+
+```{r}
+p_values <- c(0, 0.25, 0.5, 0.75, 0.9)
+
+mean_distance <- sapply(p_values, function(p) {
+  
+  distances <- replicate(1000, {
+    
+    position <- momentum_walk1(1000, p)
+    
+    sqrt(sum(position^2))
+  })
+  
+  mean(distances)
+})
+
+results <- data.frame(
+  p = p_values,
+  mean_distance = mean_distance
+)
+
+print(results)
+
+```
+
+### Explanation problem1(e)
+
+The mean final distance generally increases as momentum increases. When p is larger, the particle is more likely to continue moving in the same direction, so consecutive steps are more persistent and there is less cancellation between steps.
+
+```{r}
+library(microbenchmark)
+#n=1000
+library(microbenchmark)
+benchmark_1000 <- microbenchmark(
+  loop = momentum_walk1(1000, 0.6),
+  replicate = momentum_walk2(1000, 0.6),
+  times = 100
+)
+print(benchmark_1000)
+#n=100000
+benchmark_100000 <- microbenchmark(
+  loop = momentum_walk1(100000, 0.6),
+  replicate = momentum_walk2(100000, 0.6),
+  times = 100
+)
+print(benchmark_100000)
+```
+
+### Explanation problem1(f)
+
+Replicate implementation is faster.The absolute difference in execution time becomes much larger when n increases from 1,000 to 100,000.The loop implementation directly updates the particle's position at each step. The `replicate()` implementation repeatedly calls another function, stores the results of all steps, and then combines them using `rowSums()`. These additional function-call and result-storage operations introduce overhead, making the `replicate()` implementation slower.
