@@ -39,7 +39,6 @@ momentum_walk <- function(n, p) {
   return(position)
 }
 
-
 #set example
 momentum_walk(10, 0.6)
 ```
@@ -52,15 +51,12 @@ if we run the same parameters for several times, the outputs are different.
 #problem1_b
 #version1
 momentum_walk1 <- function(n, p) {
-  
   if (length(n) != 1 || !is.numeric(n) || n < 0 || n != floor(n)) {
     stop("n must be a non-negative integer")
   }
-  
   if (length(p) != 1 || !is.numeric(p) || p < 0 || p > 1) {
     stop("p must be between 0 and 1")
   }
-  
   directions <- matrix(
     c(1, 0,
       -1, 0,
@@ -69,7 +65,6 @@ momentum_walk1 <- function(n, p) {
     ncol = 2,
     byrow = TRUE
   )
-  
   position <- c(0, 0)
   current_direction <- sample(1:4, 1)
   position <- position + directions[current_direction, ]
@@ -87,10 +82,8 @@ momentum_walk1 <- function(n, p) {
 #version 1 test
 momentum_walk1(10, 0.6)
 momentum_walk1(1000, 0.6)
-
 #version2
 momentum_walk2 <- function(n, p) {
-  
   if (length(n) != 1 || !is.numeric(n) || n < 0 || n != floor(n)) {
     stop("n must be a non-negative integer")
   }
@@ -117,12 +110,10 @@ momentum_walk2 <- function(n, p) {
     steps <- replicate(n - 1, one_step())
     position <- position + rowSums(steps)
   }
-  
   return(position)
 }
 #version2 test
 momentum_walk2(10, 0.6)
-
 momentum_walk2(1000, 0.6)
 ```
 
@@ -164,7 +155,6 @@ for (p in p_values) {
       "position =", position,
       "distance =", distance, "\n")
 }
-
 ```
 
 ### Explanation problem1(d)
@@ -174,26 +164,18 @@ Increasing momentum tends to increase the final distance from the origin.The lar
 ```{r}
 #problem1_e
 p_values <- c(0, 0.25, 0.5, 0.75, 0.9)
-
 mean_distance <- sapply(p_values, function(p) {
-  
   distances <- replicate(1000, {
-    
     position <- momentum_walk1(1000, p)
-    
     sqrt(sum(position^2))
   })
-  
   mean(distances)
 })
-
 results <- data.frame(
   p = p_values,
   mean_distance = mean_distance
 )
-
 print(results)
-
 ```
 
 ### Explanation problem1(e)
