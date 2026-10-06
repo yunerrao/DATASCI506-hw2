@@ -1,15 +1,14 @@
 ---
-title: "hw1"
+title: "hw2"
 author: "Rao Yuner"
-format:
-  html:
-    self-contained: true
-    code-fold: true
+format: html
+self-contained: true
+code-fold: true
 engine: knitr
 ---
 
 ```{r}
-#problem 1(a) momentum_walk(n,p)
+#problem1_a  momentum_walk(n,p)
 momentum_walk <- function(n, p) {
   if (length(n) != 1 || !is.numeric(n) || n < 0 || n != floor(n)) {
     stop("n must be a non-negative integer")
@@ -50,7 +49,7 @@ momentum_walk(10, 0.6)
 if we run the same parameters for several times, the outputs are different.
 
 ```{r}
-#problem1 partb
+#problem1_b
 #version1
 momentum_walk1 <- function(n, p) {
   
@@ -135,10 +134,10 @@ Version 1 uses a for loop. At each step, the function either keeps the previous 
 
 ### Version 2
 
-Version 2 uses `replicate()` to repeat the step simulation. The previous direction is stored and updated after each simulated step, so the momentum dependence is preserved.
+Version 2 uses replicate() to repeat the step simulation. The previous direction is stored and updated after each simulated step, so the momentum dependence is preserved.
 
 ```{r}
-#part c 
+#problem1_c 
 #set example
 set.seed(123)
 momentum_walk1(10, 0.6)
@@ -152,10 +151,10 @@ momentum_walk1(1000, 0.6)
 
 ### Explanation problem1(c)
 
-I used `set.seed(123)` before each simulation. This fixes the starting point of R's pseudorandom number generator, so the same sequence of random numbers is generated each time.
+I used set.seed(123) before each simulation. This fixes the starting point of R's pseudorandom number generator, so the same sequence of random numbers is generated each time.
 
 ```{r}
-#problem1 d
+#problem1_d
 set.seed(123)
 p_values <- c(0, 0.5, 0.9)
 for (p in p_values) {
@@ -173,6 +172,7 @@ for (p in p_values) {
 Increasing momentum tends to increase the final distance from the origin.The larger momentum, the stronger movement persistence, the fewer cancellations, and bigger distance.
 
 ```{r}
+#problem1_e
 p_values <- c(0, 0.25, 0.5, 0.75, 0.9)
 
 mean_distance <- sapply(p_values, function(p) {
@@ -201,6 +201,7 @@ print(results)
 The mean final distance generally increases as momentum increases. When p is larger, the particle is more likely to continue moving in the same direction, so consecutive steps are more persistent and there is less cancellation between steps.
 
 ```{r}
+#problem1_f
 library(microbenchmark)
 #n=1000
 library(microbenchmark)
@@ -221,4 +222,311 @@ print(benchmark_100000)
 
 ### Explanation problem1(f)
 
-Replicate implementation is faster.The absolute difference in execution time becomes much larger when n increases from 1,000 to 100,000.The loop implementation directly updates the particle's position at each step. The `replicate()` implementation repeatedly calls another function, stores the results of all steps, and then combines them using `rowSums()`. These additional function-call and result-storage operations introduce overhead, making the `replicate()` implementation slower.
+Replicate implementation is faster.The absolute difference in execution time becomes much larger when n increases from 1,000 to 100,000.The loop implementation directly updates the particle's position at each step. The replicate() implementation repeatedly calls another function, stores the results of all steps, and then combines them using rowSums(). These additional function-call and result-storage operations introduce overhead, making the replicate() implementation slower.
+
+```{r}
+#problem2
+set.seed(123)
+# Number of simulated days
+n_days <- 10000
+# 6 AM to 8 AM: 3 hours
+morning <- matrix(
+  rpois(n_days * 3, lambda = 4),
+  nrow = n_days,
+  ncol = 3
+)
+# 9 AM: 1 hour
+nine_am <- rnorm(
+  n_days,
+  mean = 45,
+  sd = sqrt(16)
+)
+# 10 AM to 3 PM: 6 hours
+midday <- matrix(
+  rpois(n_days * 6, lambda = 15),
+  nrow = n_days,
+  ncol = 6
+)
+# 4 PM: 1 hour
+four_pm <- rnorm(
+  n_days,
+  mean = 55,
+  sd = sqrt(25)
+)
+# 5 PM to 10 PM: 6 hours
+evening <- matrix(
+  rpois(n_days * 6, lambda = 9),
+  nrow = n_days,
+  ncol = 6
+)
+# Total passengers for each day
+daily_total <- rowSums(morning) +
+  nine_am +
+  rowSums(midday) +
+  four_pm +
+  rowSums(evening)
+# Monte Carlo estimate of expected daily passengers
+mean(daily_total)
+```
+
+### Explanation problem2
+
+I simulated 10,000 days without using loops. For each time period, I generated the appropriate number of random observations using rpois( ) or rnorm( ). For periods containing multiple hours, I stored the observations in a matrix with one row per day and used rowSums( ). to calculate the passenger total for each day. Finally, I calculated the mean of the 10,000 daily totals to obtain the Monte Carlo estimate of the expected number of passengers per day.The theoretical expected value is 256 passengers per day, so the Monte Carlo estimate should be close to 256.
+
+```{r}
+#problem3_a
+youtube <- read.csv(
+  "https://raw.githubusercontent.com/rfordatascience/tidytuesday/main/data/2021/2021-03-02/youtube.csv"
+)
+dim(youtube)
+names(youtube)
+youtube_clean <- youtube[, c(
+  "year",
+  "funny",
+  "show_product_quickly",
+  "patriotic",
+  "celebrity",
+  "danger",
+  "animals",
+  "use_sex",
+  "view_count",
+  "like_count",
+  "dislike_count",
+  "favorite_count",
+  "comment_count",
+  "category_id"
+)]
+dim(youtube_clean)
+```
+
+### Explanation problem3(a)
+
+After removing variables that could identify individual commercials, the resulting dataset has **247 observations and 14 variables**.
+
+```{r}
+#problem3_b
+par(mfrow = c(2, 3))
+hist(
+  youtube_clean$view_count,
+  main = "View Counts",
+  xlab = "View Count"
+)
+hist(
+  youtube_clean$like_count,
+  main = "Like Counts",
+  xlab = "Like Count"
+)
+hist(
+  youtube_clean$dislike_count,
+  main = "Dislike Counts",
+  xlab = "Dislike Count"
+)
+hist(
+  youtube_clean$favorite_count,
+  main = "Favorite Counts",
+  xlab = "Favorite Count"
+)
+hist(
+  youtube_clean$comment_count,
+  main = "Comment Counts",
+  xlab = "Comment Count"
+)
+par(mfrow = c(1, 1))
+summary(youtube_clean$favorite_count)
+unique(youtube_clean$favorite_count)
+youtube_clean$log_view_count <-
+  log1p(youtube_clean$view_count)
+youtube_clean$log_like_count <-
+  log1p(youtube_clean$like_count)
+youtube_clean$log_dislike_count <-
+  log1p(youtube_clean$dislike_count)
+youtube_clean$log_comment_count <-
+  log1p(youtube_clean$comment_count)
+par(mfrow = c(2, 2))
+hist(
+  youtube_clean$log_view_count,
+  main = "Log View Counts",
+  xlab = "log(View Count + 1)"
+)
+hist(
+  youtube_clean$log_like_count,
+  main = "Log Like Counts",
+  xlab = "log(Like Count + 1)"
+)
+hist(
+  youtube_clean$log_dislike_count,
+  main = "Log Dislike Counts",
+  xlab = "log(Dislike Count + 1)"
+)
+hist(
+  youtube_clean$log_comment_count,
+  main = "Log Comment Counts",
+  xlab = "log(Comment Count + 1)"
+)
+par(mfrow = c(1, 1))
+```
+
+### Explanation problem3(b)
+
+The view counts, like counts, dislike counts, and comment counts are strongly right-skewed. Therefore, I use a log transformation, specifically log(x+1), to reduce the skewness and allow zero counts. The favorite_count variable is not appropriate as an outcome because it has no variation, with all observations having the same value. Thus, the four appropriate outcomes are log-transformed view counts, like counts, dislike counts, and comment counts.
+
+```{r}
+#problem3_c
+characteristics <- c(
+  "funny",
+  "show_product_quickly",
+  "patriotic",
+  "celebrity",
+  "danger",
+  "animals",
+  "use_sex"
+)
+outcomes <- c(
+  "log_view_count",
+  "log_like_count",
+  "log_dislike_count",
+  "log_comment_count"
+)
+youtube_clean[characteristics] <-
+  lapply(
+    youtube_clean[characteristics],
+    as.numeric
+  )
+results <- list()
+for (outcome in outcomes) {
+  for (characteristic in characteristics) {
+    formula <- as.formula(
+      paste(
+        outcome,
+        "~",
+        characteristic,
+        "+ year"
+      )
+    )
+    model <- lm(
+      formula,
+      data = youtube_clean
+    )
+    coefficient <-
+      coef(summary(model))[
+        characteristic,
+        "Estimate"
+      ]
+    p_value <-
+      coef(summary(model))[
+        characteristic,
+        "Pr(>|t|)"
+      ]
+    results[[length(results) + 1]] <-
+      data.frame(
+        outcome = outcome,
+        characteristic = characteristic,
+        estimate = coefficient,
+        p_value = p_value
+      )
+  }
+}
+results <- do.call(
+  rbind,
+  results
+)
+results$significant <-
+  results$p_value < 0.05
+results
+significant_results <-
+  results[
+    results$p_value < 0.05,
+  ]
+significant_results
+view_results <-
+  results[
+    results$outcome == "log_view_count",
+  ]
+view_results
+best_characteristic <-
+  view_results$characteristic[
+    which.min(view_results$p_value)
+  ]
+best_characteristic
+view_results[
+  which.min(view_results$p_value),
+]
+```
+
+### Explanation problem3(c)
+
+I fitted 28 regression models, controlling for year in each model. At the 0.05 significance level, none of the commercial characteristics was statistically significant for the four outcomes. For log-transformed view counts, **danger** had the smallest p-value (p = 0.0941) and an estimated coefficient of 0.6668. The positive coefficient suggests a positive association with log view counts, but the association was not statistically significant.
+
+```{r}
+#problem3_d
+# Remove observations with missing values
+d <- youtube_clean[
+  complete.cases(
+    youtube_clean[
+      ,
+      c(
+        "log_view_count",
+        best_characteristic,
+        "year"
+      )
+    ]
+  ),
+]
+# Response vector
+y <- d$log_view_count
+# Design matrix
+X <- cbind(
+  1,
+  d[[best_characteristic]],
+  d$year
+)
+# OLS using matrix algebra
+beta_hat <-
+  solve(t(X) %*% X) %*%
+  t(X) %*%
+  y
+# Display matrix algebra results
+beta_hat
+# Fit the same model using lm()
+formula_d <- as.formula(
+  paste(
+    "log_view_count ~",
+    best_characteristic,
+    "+ year"
+  )
+)
+model_d <- lm(
+  formula_d,
+  data = d
+)
+beta_lm <- coef(model_d)
+# Display lm results
+beta_lm
+# Compare results
+comparison <- cbind(
+  matrix_algebra = as.vector(beta_hat),
+  lm = as.numeric(beta_lm)
+)
+comparison
+# Check whether they are equal
+all.equal(
+  as.vector(beta_hat),
+  as.numeric(beta_lm),
+  tolerance = 1e-10)
+```
+
+### Explanation problem3(d)
+
+I used danger, which had the smallest p-value for predicting log-transformed view counts in Part (c). The design matrix included an intercept, danger, and year. Using the OLS matrix formula
+β\^=(XTX)−1XTy,\\hat{\\beta}=(X\^TX)\^{-1}X\^Ty,
+I obtained the coefficient estimates:
+β\^0=−31.3915,β\^1=0.6668,β\^2=0.02066.\\hat{\\beta}\_0=-31.3915,\\qquad
+\\hat{\\beta}\_1=0.6668,\\qquad
+\\hat{\\beta}\_2=0.02066.
+Therefore, the fitted model is
+log⁡(view count+1)\^=−31.3915+0.6668(danger)+0.02066(year).\\widehat{\\log(\\text{view count}+1)}
+=
+-31.3915+0.6668(\\text{danger})+0.02066(\\text{year}).
+The coefficients obtained using matrix algebra were exactly the same as those obtained using lm(). The all.equal() result was TRUE, confirming that the matrix formula produces the same OLS estimates as lm().
+
+Holding year constant, commercials with the danger characteristic have an estimated 0.6668 higher log-transformed view count than commercials without this characteristic. Holding danger constant, a one-year increase in year is associated with an estimated 0.02066 increase in log-transformed view count.
